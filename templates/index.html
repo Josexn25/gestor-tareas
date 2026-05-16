@@ -9,35 +9,95 @@
   <body>
     <main class="app-shell">
       <section class="hero" aria-labelledby="page-title">
-        <p class="eyebrow">Modo oscuro</p>
-        <h1 id="page-title">Gestor de tareas</h1>
-        <p class="subtitle">Organiza tus pendientes diarios con una interfaz rapida y limpia.</p>
+        <div>
+          <p class="eyebrow">Modo oscuro mejorado</p>
+          <h1 id="page-title">Gestor de tareas</h1>
+          <p class="subtitle">Organiza prioridades, fechas limite y categorias en un espacio limpio y rapido.</p>
+        </div>
+
+        <section class="progress-card" aria-label="Progreso general">
+          <span class="progress-value">{{ progress }}%</span>
+          <span class="progress-label">progreso</span>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-fill" style="width: {{ progress }}%;"></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="stats-grid" aria-label="Estadisticas">
+        <article>
+          <span>{{ completed_count }}</span>
+          <p>Completadas</p>
+        </article>
+        <article>
+          <span>{{ pending_count }}</span>
+          <p>Pendientes</p>
+        </article>
+        <article>
+          <span>{{ total_count }}</span>
+          <p>Total</p>
+        </article>
       </section>
 
       <section class="task-panel" aria-label="Tareas">
         <form class="task-form" action="{{ url_for('add_task') }}" method="post">
-          <label class="sr-only" for="task">Nueva tarea</label>
-          <input
-            id="task"
-            name="task"
-            type="text"
-            placeholder="Escribe una nueva tarea..."
-            autocomplete="off"
-            maxlength="120"
-            required
-          >
-          <button type="submit">Agregar</button>
+          <div class="field task-field">
+            <label for="task">Nueva tarea</label>
+            <input
+              id="task"
+              name="task"
+              type="text"
+              placeholder="Ej. Preparar informe semanal"
+              autocomplete="off"
+              maxlength="120"
+              required
+            >
+          </div>
+
+          <div class="field">
+            <label for="priority">Prioridad</label>
+            <select id="priority" name="priority">
+              {% for priority in priorities %}
+                <option value="{{ priority }}">{{ priority }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="category">Categoria</label>
+            <select id="category" name="category">
+              {% for category in categories %}
+                <option value="{{ category }}">{{ category }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="due_date">Fecha limite</label>
+            <input id="due_date" name="due_date" type="date">
+          </div>
+
+          <button class="add-button" type="submit">Agregar tarea</button>
         </form>
 
-        <div class="summary" aria-live="polite">
-          <span>{{ pending_count }} pendientes</span>
-          <span>{{ completed_count }} completadas</span>
+        <div class="toolbar">
+          <label class="sr-only" for="search">Buscar tareas</label>
+          <input
+            id="search"
+            class="search-input"
+            type="search"
+            placeholder="Buscar por nombre, categoria o prioridad..."
+            autocomplete="off"
+          >
         </div>
 
         {% if tasks %}
-          <ul class="task-list">
+          <ul class="task-list" id="task-list">
             {% for task in tasks %}
-              <li class="task-item {% if task.completed %}is-completed{% endif %}">
+              <li
+                class="task-item priority-{{ task.priority|lower }} {% if task.completed %}is-completed{% endif %} {% if task.overdue %}is-overdue{% endif %}"
+                data-search="{{ task.text }} {{ task.category }} {{ task.priority }} {% if task.due_date %}{{ task.due_date }}{% endif %}"
+              >
                 <form action="{{ url_for('toggle_task', task_id=loop.index0) }}" method="post">
                   <button
                     class="check-button"
@@ -48,7 +108,24 @@
                   </button>
                 </form>
 
-                <span class="task-text">{{ task.text }}</span>
+                <div class="task-content">
+                  <div class="task-title-row">
+                    <span class="task-text">{{ task.text }}</span>
+                    {% if task.overdue %}
+                      <span class="overdue-badge">Vencida</span>
+                    {% endif %}
+                  </div>
+
+                  <div class="task-meta">
+                    <span class="priority-pill">{{ task.priority }}</span>
+                    <span>{{ task.category }}</span>
+                    {% if task.due_date %}
+                      <time datetime="{{ task.due_date }}">Limite: {{ task.due_date }}</time>
+                    {% else %}
+                      <span>Sin fecha</span>
+                    {% endif %}
+                  </div>
+                </div>
 
                 <form action="{{ url_for('delete_task', task_id=loop.index0) }}" method="post">
                   <button class="delete-button" type="submit">Eliminar</button>
@@ -56,6 +133,11 @@
               </li>
             {% endfor %}
           </ul>
+
+          <div class="empty-state is-hidden" id="no-results">
+            <h2>No hay coincidencias</h2>
+            <p>Prueba con otro nombre, prioridad o categoria.</p>
+          </div>
         {% else %}
           <div class="empty-state">
             <h2>No hay tareas todavia</h2>
@@ -64,5 +146,7 @@
         {% endif %}
       </section>
     </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
   </body>
 </html>

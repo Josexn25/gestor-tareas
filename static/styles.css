@@ -1,16 +1,21 @@
 :root {
   color-scheme: dark;
-  --bg: #0e1117;
-  --panel: #171b24;
-  --panel-soft: #1f2530;
+  --bg: #0b0d12;
+  --surface: #12151d;
+  --surface-2: #181c25;
+  --surface-3: #202632;
   --text: #f8fafc;
-  --muted: #9ca3af;
+  --muted: #a3aab7;
+  --soft: #737b8c;
   --line: rgba(255, 255, 255, 0.08);
-  --primary: #38bdf8;
-  --primary-strong: #0284c7;
+  --primary: #5eead4;
+  --primary-strong: #14b8a6;
   --danger: #fb7185;
   --danger-strong: #e11d48;
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+  --high: #fb7185;
+  --medium: #fbbf24;
+  --low: #34d399;
+  --shadow: 0 28px 90px rgba(0, 0, 0, 0.44);
 }
 
 * {
@@ -26,14 +31,16 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 34rem),
-    linear-gradient(145deg, #0e1117 0%, #141821 52%, #10131a 100%);
+    radial-gradient(circle at 18% 0%, rgba(94, 234, 212, 0.16), transparent 30rem),
+    radial-gradient(circle at 90% 8%, rgba(251, 191, 36, 0.08), transparent 26rem),
+    linear-gradient(150deg, #0b0d12 0%, #11151e 52%, #0c0f15 100%);
   color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -43,12 +50,16 @@ button {
 }
 
 .app-shell {
-  width: min(760px, 100%);
+  width: min(980px, 100%);
   margin: 0 auto;
-  padding: max(22px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom));
+  padding: max(22px, env(safe-area-inset-top)) 18px max(30px, env(safe-area-inset-bottom));
 }
 
 .hero {
+  display: grid;
+  grid-template-columns: 1fr minmax(210px, 260px);
+  align-items: end;
+  gap: 18px;
   padding: 18px 2px 22px;
 }
 
@@ -61,7 +72,7 @@ button {
   background: rgba(255, 255, 255, 0.05);
   color: var(--primary);
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -73,78 +84,149 @@ p {
 }
 
 h1 {
-  max-width: 13ch;
-  font-size: clamp(2.4rem, 10vw, 4.6rem);
-  line-height: 0.95;
+  max-width: 12ch;
+  font-size: clamp(2.45rem, 8vw, 5rem);
+  line-height: 0.96;
 }
 
 .subtitle {
-  max-width: 40rem;
+  max-width: 42rem;
   margin-top: 16px;
   color: var(--muted);
-  font-size: clamp(1rem, 3.8vw, 1.16rem);
+  font-size: clamp(1rem, 3.2vw, 1.17rem);
   line-height: 1.55;
 }
 
+.progress-card,
+.stats-grid article,
 .task-panel {
-  padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 24px;
-  background: rgba(23, 27, 36, 0.86);
+  background: rgba(18, 21, 29, 0.86);
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
 }
 
-.task-form {
+.progress-card {
+  padding: 18px;
+  border-radius: 24px;
+}
+
+.progress-value {
+  display: block;
+  font-size: 2.35rem;
+  font-weight: 900;
+}
+
+.progress-label {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+}
+
+.progress-track {
+  height: 9px;
+  margin-top: 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary), #86efac);
+  transition: width 240ms ease;
+}
+
+.stats-grid {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
-.task-form input {
-  width: 100%;
-  min-width: 0;
-  min-height: 52px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  outline: none;
-  background: var(--panel-soft);
-  color: var(--text);
-  padding: 0 16px;
+.stats-grid article {
+  padding: 16px;
+  border-radius: 20px;
 }
 
-.task-form input:focus {
-  border-color: rgba(56, 189, 248, 0.72);
-  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.16);
+.stats-grid span {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 900;
 }
 
-.task-form button {
-  min-height: 52px;
-  border-radius: 16px;
-  background: var(--primary);
-  color: #06111a;
-  padding: 0 18px;
-  font-weight: 800;
-}
-
-.task-form button:hover {
-  background: #7dd3fc;
-}
-
-.summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 16px 0;
+.stats-grid p {
+  margin-top: 4px;
   color: var(--muted);
   font-size: 0.92rem;
 }
 
-.summary span {
-  padding: 8px 11px;
+.task-panel {
+  padding: 16px;
+  border-radius: 26px;
+}
+
+.task-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) repeat(3, minmax(130px, 0.8fr)) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.field label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.task-form input,
+.task-form select,
+.search-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
   border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  outline: none;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0 14px;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.task-form input:focus,
+.task-form select:focus,
+.search-input:focus {
+  border-color: rgba(94, 234, 212, 0.75);
+  box-shadow: 0 0 0 4px rgba(94, 234, 212, 0.14);
+  background: var(--surface-3);
+}
+
+.add-button {
+  min-height: 50px;
+  border-radius: 16px;
+  background: var(--primary);
+  color: #05201c;
+  padding: 0 18px;
+  font-weight: 900;
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.add-button:hover {
+  background: #99f6e4;
+  transform: translateY(-1px);
+}
+
+.toolbar {
+  margin: 16px 0;
 }
 
 .task-list {
@@ -157,56 +239,146 @@ h1 {
 
 .task-item {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  min-height: 64px;
-  padding: 10px;
+  min-height: 74px;
+  padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 18px;
-  background: rgba(31, 37, 48, 0.82);
+  border-left: 4px solid var(--medium);
+  border-radius: 20px;
+  background: rgba(32, 38, 50, 0.78);
+  animation: task-in 220ms ease both;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.task-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(37, 44, 58, 0.9);
+}
+
+.priority-alta {
+  border-left-color: var(--high);
+}
+
+.priority-media {
+  border-left-color: var(--medium);
+}
+
+.priority-baja {
+  border-left-color: var(--low);
 }
 
 .check-button {
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   place-items: center;
-  border: 1px solid rgba(56, 189, 248, 0.42);
+  border: 1px solid rgba(94, 234, 212, 0.45);
   border-radius: 50%;
-  background: rgba(56, 189, 248, 0.08);
+  background: rgba(94, 234, 212, 0.08);
   color: var(--primary);
-  font-size: 1.05rem;
+  font-size: 0.78rem;
   font-weight: 900;
+  transition: background 180ms ease, transform 180ms ease;
 }
 
 .check-button:hover {
-  background: rgba(56, 189, 248, 0.18);
+  background: rgba(94, 234, 212, 0.2);
+  transform: scale(1.04);
+}
+
+.task-content {
+  min-width: 0;
+}
+
+.task-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .task-text {
   overflow-wrap: anywhere;
   color: var(--text);
   line-height: 1.35;
+  font-weight: 700;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.task-meta span,
+.task-meta time,
+.overdue-badge {
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.priority-pill {
+  color: var(--text);
+}
+
+.priority-alta .priority-pill {
+  border-color: rgba(251, 113, 133, 0.36);
+  background: rgba(251, 113, 133, 0.12);
+}
+
+.priority-media .priority-pill {
+  border-color: rgba(251, 191, 36, 0.36);
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.priority-baja .priority-pill {
+  border-color: rgba(52, 211, 153, 0.36);
+  background: rgba(52, 211, 153, 0.12);
+}
+
+.is-completed {
+  opacity: 0.76;
 }
 
 .is-completed .task-text {
-  color: var(--muted);
+  color: var(--soft);
   text-decoration: line-through;
 }
 
+.is-overdue {
+  background: rgba(76, 29, 45, 0.42);
+}
+
+.overdue-badge {
+  flex: 0 0 auto;
+  border-color: rgba(251, 113, 133, 0.38);
+  background: rgba(251, 113, 133, 0.14);
+  color: #fecdd3;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
 .delete-button {
-  min-height: 38px;
-  border-radius: 13px;
+  min-height: 40px;
+  border-radius: 14px;
   background: rgba(251, 113, 133, 0.1);
   color: #fecdd3;
   padding: 0 13px;
-  font-weight: 700;
+  font-weight: 800;
+  transition: background 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
 .delete-button:hover {
   background: var(--danger-strong);
   color: white;
+  transform: translateY(-1px);
 }
 
 .empty-state {
@@ -223,6 +395,10 @@ h1 {
   color: var(--muted);
 }
 
+.is-hidden {
+  display: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -234,14 +410,53 @@ h1 {
   border: 0;
 }
 
+@keyframes task-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-card {
+    max-width: 100%;
+  }
+
+  .task-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .task-field,
+  .add-button {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 560px) {
   .app-shell {
     padding-left: 14px;
     padding-right: 14px;
   }
 
+  .hero {
+    padding-top: 12px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
   .task-panel {
-    border-radius: 20px;
+    border-radius: 22px;
     padding: 12px;
   }
 
@@ -249,12 +464,9 @@ h1 {
     grid-template-columns: 1fr;
   }
 
-  .task-form button {
-    width: 100%;
-  }
-
   .task-item {
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
   }
 
   .delete-button {
