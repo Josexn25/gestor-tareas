@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Crear cuenta{% endblock %}
+
+{% block body %}
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="register-title">
+      <p class="eyebrow">Nuevo usuario</p>
+      <h1 id="register-title">Crear cuenta</h1>
+      <p class="subtitle">Tus tareas se guardaran en SQLite y quedaran asociadas a tu usuario.</p>
+
+      <form class="auth-form" action="{{ url_for('auth.register_post') }}" method="post">
+        <div class="field">
+          <label for="username">Usuario</label>
+          <input id="username" name="username" type="text" autocomplete="username" maxlength="40" required autofocus>
+        </div>
+
+        <div class="field">
+          <label for="password">Contrasena</label>
+          <input id="password" name="password" type="password" autocomplete="new-password" minlength="6" required>
+        </div>
+
+        <button class="add-button" type="submit">Crear cuenta</button>
+      </form>
+
+      <p class="auth-link">Ya tienes cuenta? <a href="{{ url_for('auth.login') }}">Iniciar sesion</a></p>
+    </section>
+  </main>
+{% endblock %}

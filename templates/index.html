@@ -1,152 +1,159 @@
-<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Gestor de tareas</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  </head>
-  <body>
-    <main class="app-shell">
-      <section class="hero" aria-labelledby="page-title">
-        <div>
-          <p class="eyebrow">Modo oscuro mejorado</p>
-          <h1 id="page-title">Gestor de tareas</h1>
-          <p class="subtitle">Organiza prioridades, fechas limite y categorias en un espacio limpio y rapido.</p>
+{% extends "base.html" %}
+
+{% block title %}Mis tareas{% endblock %}
+
+{% block body %}
+  <main class="app-shell">
+    <nav class="topbar" aria-label="Sesion">
+      <div>
+        <span class="session-label">Sesion activa</span>
+        <strong>{{ g.user.username }}</strong>
+      </div>
+      <form action="{{ url_for('auth.logout') }}" method="post">
+        <button class="ghost-button" type="submit">Cerrar sesion</button>
+      </form>
+    </nav>
+
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Modo oscuro mejorado</p>
+        <h1 id="page-title">Gestor de tareas</h1>
+        <p class="subtitle">Organiza prioridades, fechas limite y categorias en un espacio privado para tus tareas.</p>
+      </div>
+
+      <section class="progress-card" aria-label="Progreso general">
+        <span class="progress-value">{{ progress }}%</span>
+        <span class="progress-label">progreso</span>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" style="width: {{ progress }}%;"></div>
         </div>
-
-        <section class="progress-card" aria-label="Progreso general">
-          <span class="progress-value">{{ progress }}%</span>
-          <span class="progress-label">progreso</span>
-          <div class="progress-track" aria-hidden="true">
-            <div class="progress-fill" style="width: {{ progress }}%;"></div>
-          </div>
-        </section>
       </section>
+    </section>
 
-      <section class="stats-grid" aria-label="Estadisticas">
-        <article>
-          <span>{{ completed_count }}</span>
-          <p>Completadas</p>
-        </article>
-        <article>
-          <span>{{ pending_count }}</span>
-          <p>Pendientes</p>
-        </article>
-        <article>
-          <span>{{ total_count }}</span>
-          <p>Total</p>
-        </article>
-      </section>
+    <section class="stats-grid" aria-label="Estadisticas">
+      <article>
+        <span>{{ completed_count }}</span>
+        <p>Completadas</p>
+      </article>
+      <article>
+        <span>{{ pending_count }}</span>
+        <p>Pendientes</p>
+      </article>
+      <article>
+        <span>{{ total_count }}</span>
+        <p>Total</p>
+      </article>
+    </section>
 
-      <section class="task-panel" aria-label="Tareas">
-        <form class="task-form" action="{{ url_for('add_task') }}" method="post">
-          <div class="field task-field">
-            <label for="task">Nueva tarea</label>
-            <input
-              id="task"
-              name="task"
-              type="text"
-              placeholder="Ej. Preparar informe semanal"
-              autocomplete="off"
-              maxlength="120"
-              required
-            >
-          </div>
-
-          <div class="field">
-            <label for="priority">Prioridad</label>
-            <select id="priority" name="priority">
-              {% for priority in priorities %}
-                <option value="{{ priority }}">{{ priority }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="category">Categoria</label>
-            <select id="category" name="category">
-              {% for category in categories %}
-                <option value="{{ category }}">{{ category }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="due_date">Fecha limite</label>
-            <input id="due_date" name="due_date" type="date">
-          </div>
-
-          <button class="add-button" type="submit">Agregar tarea</button>
-        </form>
-
-        <div class="toolbar">
-          <label class="sr-only" for="search">Buscar tareas</label>
+    <section class="task-panel" aria-label="Tareas">
+      <form class="task-form" action="{{ url_for('tasks.add_task') }}" method="post">
+        <div class="field task-field">
+          <label for="task">Nueva tarea</label>
           <input
-            id="search"
-            class="search-input"
-            type="search"
-            placeholder="Buscar por nombre, categoria o prioridad..."
+            id="task"
+            name="task"
+            type="text"
+            placeholder="Ej. Preparar informe semanal"
             autocomplete="off"
+            maxlength="120"
+            required
           >
         </div>
 
-        {% if tasks %}
-          <ul class="task-list" id="task-list">
-            {% for task in tasks %}
-              <li
-                class="task-item priority-{{ task.priority|lower }} {% if task.completed %}is-completed{% endif %} {% if task.overdue %}is-overdue{% endif %}"
-                data-search="{{ task.text }} {{ task.category }} {{ task.priority }} {% if task.due_date %}{{ task.due_date }}{% endif %}"
-              >
-                <form action="{{ url_for('toggle_task', task_id=loop.index0) }}" method="post">
-                  <button
-                    class="check-button"
-                    type="submit"
-                    aria-label="{% if task.completed %}Marcar como pendiente{% else %}Marcar como completada{% endif %}"
-                  >
-                    {% if task.completed %}OK{% endif %}
-                  </button>
-                </form>
+        <div class="field">
+          <label for="priority">Prioridad</label>
+          <select id="priority" name="priority">
+            {% for priority in priorities %}
+              <option value="{{ priority }}">{{ priority }}</option>
+            {% endfor %}
+          </select>
+        </div>
 
-                <div class="task-content">
-                  <div class="task-title-row">
-                    <span class="task-text">{{ task.text }}</span>
-                    {% if task.overdue %}
-                      <span class="overdue-badge">Vencida</span>
-                    {% endif %}
-                  </div>
+        <div class="field">
+          <label for="category">Categoria</label>
+          <select id="category" name="category">
+            {% for category in categories %}
+              <option value="{{ category }}">{{ category }}</option>
+            {% endfor %}
+          </select>
+        </div>
 
-                  <div class="task-meta">
-                    <span class="priority-pill">{{ task.priority }}</span>
-                    <span>{{ task.category }}</span>
-                    {% if task.due_date %}
-                      <time datetime="{{ task.due_date }}">Limite: {{ task.due_date }}</time>
-                    {% else %}
-                      <span>Sin fecha</span>
-                    {% endif %}
-                  </div>
+        <div class="field">
+          <label for="due_date">Fecha limite</label>
+          <input id="due_date" name="due_date" type="date">
+        </div>
+
+        <button class="add-button" type="submit">Agregar tarea</button>
+      </form>
+
+      <div class="toolbar">
+        <label class="sr-only" for="search">Buscar tareas</label>
+        <input
+          id="search"
+          class="search-input"
+          type="search"
+          placeholder="Buscar por nombre, categoria o prioridad..."
+          autocomplete="off"
+        >
+      </div>
+
+      {% if tasks %}
+        <ul class="task-list" id="task-list">
+          {% for task in tasks %}
+            <li
+              class="task-item priority-{{ task.priority|lower }} {% if task.completed %}is-completed{% endif %} {% if task.overdue %}is-overdue{% endif %}"
+              data-search="{{ task.text }} {{ task.category }} {{ task.priority }} {% if task.due_date %}{{ task.due_date }}{% endif %}"
+            >
+              <form action="{{ url_for('tasks.toggle_task', task_id=task.id) }}" method="post">
+                <button
+                  class="check-button"
+                  type="submit"
+                  aria-label="{% if task.completed %}Marcar como pendiente{% else %}Marcar como completada{% endif %}"
+                >
+                  {% if task.completed %}OK{% endif %}
+                </button>
+              </form>
+
+              <div class="task-content">
+                <div class="task-title-row">
+                  <span class="task-text">{{ task.text }}</span>
+                  {% if task.overdue %}
+                    <span class="overdue-badge">Vencida</span>
+                  {% endif %}
                 </div>
 
-                <form action="{{ url_for('delete_task', task_id=loop.index0) }}" method="post">
-                  <button class="delete-button" type="submit">Eliminar</button>
-                </form>
-              </li>
-            {% endfor %}
-          </ul>
+                <div class="task-meta">
+                  <span class="priority-pill">{{ task.priority }}</span>
+                  <span>{{ task.category }}</span>
+                  {% if task.due_date %}
+                    <time datetime="{{ task.due_date }}">Limite: {{ task.due_date }}</time>
+                  {% else %}
+                    <span>Sin fecha</span>
+                  {% endif %}
+                </div>
+              </div>
 
-          <div class="empty-state is-hidden" id="no-results">
-            <h2>No hay coincidencias</h2>
-            <p>Prueba con otro nombre, prioridad o categoria.</p>
-          </div>
-        {% else %}
-          <div class="empty-state">
-            <h2>No hay tareas todavia</h2>
-            <p>Agrega la primera para empezar a ordenar tu dia.</p>
-          </div>
-        {% endif %}
-      </section>
-    </main>
+              <form action="{{ url_for('tasks.delete_task', task_id=task.id) }}" method="post">
+                <button class="delete-button" type="submit">Eliminar</button>
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
 
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
-  </body>
-</html>
+        <div class="empty-state is-hidden" id="no-results">
+          <h2>No hay coincidencias</h2>
+          <p>Prueba con otro nombre, prioridad o categoria.</p>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <h2>No hay tareas todavia</h2>
+          <p>Agrega la primera para empezar a ordenar tu dia.</p>
+        </div>
+      {% endif %}
+    </section>
+  </main>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}
