@@ -23,6 +23,11 @@
         <button class="add-button" type="submit">Entrar</button>
       </form>
 
+      <div class="auth-actions">
+        <a href="{{ url_for('auth.forgot_password') }}">Olvide mi contrasena</a>
+        <a href="{{ url_for('auth.resend_verification') }}">Reenviar verificacion</a>
+      </div>
+
       <p class="auth-link">No tienes cuenta? <a href="{{ url_for('auth.register') }}">Crear cuenta</a></p>
     </section>
   </main>

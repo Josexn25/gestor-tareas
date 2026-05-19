@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Reenviar verificacion{% endblock %}
+
+{% block body %}
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="resend-title">
+      <p class="eyebrow">Verificacion</p>
+      <h1 id="resend-title">Reenviar correo</h1>
+      <p class="subtitle">Si tu cuenta no esta verificada, enviaremos un nuevo enlace de confirmacion.</p>
+
+      <form class="auth-form" action="{{ url_for('auth.resend_verification_post') }}" method="post">
+        <div class="field">
+          <label for="email">Correo</label>
+          <input id="email" name="email" type="email" autocomplete="email" required autofocus>
+        </div>
+
+        <button class="add-button" type="submit">Reenviar enlace</button>
+      </form>
+
+      <p class="auth-link"><a href="{{ url_for('auth.login') }}">Volver al login</a></p>
+    </section>
+  </main>
+{% endblock %}

@@ -35,7 +35,9 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL UNIQUE,
+            email TEXT UNIQUE,
             password_hash TEXT NOT NULL,
+            is_verified INTEGER NOT NULL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
@@ -57,7 +59,32 @@ def init_db():
         """
     )
 
+    migrate_users_table(db)
     db.commit()
+
+
+def column_exists(db, table, column):
+    """Comprueba si una columna existe en una tabla SQLite."""
+    columns = db.execute(f"PRAGMA table_info({table})").fetchall()
+    return any(row["name"] == column for row in columns)
+
+
+def migrate_users_table(db):
+    """Agrega columnas nuevas cuando la base ya existia."""
+    if not column_exists(db, "users", "email"):
+        db.execute("ALTER TABLE users ADD COLUMN email TEXT")
+
+    if not column_exists(db, "users", "is_verified"):
+        db.execute("ALTER TABLE users ADD COLUMN is_verified INTEGER NOT NULL DEFAULT 0")
+        db.execute("UPDATE users SET is_verified = 1 WHERE email IS NULL OR email = ''")
+
+    db.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
+        ON users(email)
+        WHERE email IS NOT NULL AND email != ''
+        """
+    )
 
 
 def init_app(app):

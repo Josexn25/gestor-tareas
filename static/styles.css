@@ -192,6 +192,15 @@ a:hover {
   text-align: center;
 }
 
+.auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 14px;
+  margin-top: 16px;
+  font-size: 0.92rem;
+}
+
 .hero {
   display: grid;
   grid-template-columns: 1fr minmax(210px, 260px);
@@ -601,6 +610,11 @@ h1 {
   .auth-card {
     padding: 18px;
     border-radius: 22px;
+  }
+
+  .auth-actions {
+    align-items: center;
+    flex-direction: column;
   }
 
   .stats-grid {
