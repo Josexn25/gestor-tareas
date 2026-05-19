@@ -15,10 +15,6 @@ def create_app():
         "clave-local-de-desarrollo-cambiar-en-produccion",
     )
     app.config["RESEND_API_KEY"] = os.environ.get("RESEND_API_KEY")
-    app.config["MAIL_DEFAULT_SENDER"] = os.environ.get(
-        "MAIL_DEFAULT_SENDER",
-        "onboarding@resend.dev",
-    )
 
     init_app(app)
     app.register_blueprint(auth_bp)

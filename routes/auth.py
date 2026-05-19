@@ -81,7 +81,6 @@ def build_email_html(title, intro, link, button_text, footer):
 def send_email(to_email, subject, text_body, html_body):
     """Envia un email transaccional con Resend API."""
     api_key = current_app.config.get("RESEND_API_KEY")
-    sender = current_app.config.get("MAIL_DEFAULT_SENDER", "onboarding@resend.dev")
 
     if not api_key:
         current_app.logger.warning("RESEND_API_KEY no configurada. Email pendiente para %s: %s", to_email, text_body)
@@ -92,7 +91,7 @@ def send_email(to_email, subject, text_body, html_body):
     try:
         resend.Emails.send(
             {
-                "from": sender,
+                "from": "onboarding@resend.dev",
                 "to": [to_email],
                 "subject": subject,
                 "text": text_body,
