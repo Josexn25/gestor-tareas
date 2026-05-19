@@ -1,6 +1,7 @@
 import sqlite3
 from functools import wraps
 
+import resend
 from flask import (
     Blueprint,
     current_app,
@@ -12,12 +13,10 @@ from flask import (
     session,
     url_for,
 )
-from flask_mail import Message
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database.db import get_db, init_db
-from extensions import mail
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -63,18 +62,46 @@ def load_token(token, purpose, max_age):
     return data.get("email"), None
 
 
-def send_email(to_email, subject, body):
-    """Envia un email con Flask-Mail si SMTP esta configurado."""
-    if not current_app.config.get("MAIL_USERNAME") or not current_app.config.get("MAIL_PASSWORD"):
-        current_app.logger.warning("SMTP no configurado. Email pendiente para %s: %s", to_email, body)
+def build_email_html(title, intro, link, button_text, footer):
+    """Crea el HTML base para correos transaccionales."""
+    return f"""
+    <div style="margin:0;padding:32px;background:#0b0d12;color:#f8fafc;font-family:Arial,sans-serif;">
+      <div style="max-width:560px;margin:0 auto;background:#12151d;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:28px;">
+        <p style="margin:0 0 12px;color:#5eead4;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Gestor de tareas</p>
+        <h1 style="margin:0 0 14px;font-size:28px;line-height:1.15;color:#f8fafc;">{title}</h1>
+        <p style="margin:0 0 22px;color:#a3aab7;font-size:16px;line-height:1.55;">{intro}</p>
+        <a href="{link}" style="display:inline-block;background:#5eead4;color:#05201c;text-decoration:none;font-weight:800;padding:13px 18px;border-radius:14px;">{button_text}</a>
+        <p style="margin:22px 0 0;color:#a3aab7;font-size:13px;line-height:1.5;">{footer}</p>
+        <p style="margin:16px 0 0;color:#737b8c;font-size:12px;line-height:1.5;word-break:break-all;">{link}</p>
+      </div>
+    </div>
+    """
+
+
+def send_email(to_email, subject, text_body, html_body):
+    """Envia un email transaccional con Resend API."""
+    api_key = current_app.config.get("RESEND_API_KEY")
+    sender = current_app.config.get("MAIL_DEFAULT_SENDER", "onboarding@resend.dev")
+
+    if not api_key:
+        current_app.logger.warning("RESEND_API_KEY no configurada. Email pendiente para %s: %s", to_email, text_body)
         return False
 
-    message = Message(subject=subject, recipients=[to_email], body=body)
+    resend.api_key = api_key
+
     try:
-        mail.send(message)
+        resend.Emails.send(
+            {
+                "from": sender,
+                "to": [to_email],
+                "subject": subject,
+                "text": text_body,
+                "html": html_body,
+            }
+        )
         return True
     except Exception:
-        current_app.logger.exception("No se pudo enviar email a %s", to_email)
+        current_app.logger.exception("Resend no pudo enviar email a %s", to_email)
         return False
 
 
@@ -82,26 +109,40 @@ def send_verification_email(user):
     """Envia el enlace de verificacion de correo."""
     token = generate_token(user["email"], "verify-email")
     link = url_for("auth.verify_email", token=token, _external=True)
-    body = (
+    text_body = (
         f"Hola {user['username']},\n\n"
         "Confirma tu correo para activar tu cuenta del gestor de tareas:\n"
         f"{link}\n\n"
         "Este enlace vence en 24 horas."
     )
-    return send_email(user["email"], "Confirma tu correo", body)
+    html_body = build_email_html(
+        "Confirma tu correo",
+        f"Hola {user['username']}, confirma tu correo para activar tu cuenta y comenzar a usar tus tareas privadas.",
+        link,
+        "Verificar correo",
+        "Este enlace vence en 24 horas. Si no creaste esta cuenta, puedes ignorar este mensaje.",
+    )
+    return send_email(user["email"], "Confirma tu correo", text_body, html_body)
 
 
 def send_password_reset_email(user):
     """Envia el enlace seguro para restablecer contrasena."""
     token = generate_token(user["email"], "reset-password")
     link = url_for("auth.reset_password", token=token, _external=True)
-    body = (
+    text_body = (
         f"Hola {user['username']},\n\n"
         "Usa este enlace para cambiar tu contrasena:\n"
         f"{link}\n\n"
         "Este enlace vence en 1 hora. Si no lo solicitaste, ignora este correo."
     )
-    return send_email(user["email"], "Recuperar contrasena", body)
+    html_body = build_email_html(
+        "Recuperar contrasena",
+        f"Hola {user['username']}, recibimos una solicitud para cambiar la contrasena de tu cuenta.",
+        link,
+        "Cambiar contrasena",
+        "Este enlace vence en 1 hora. Si no solicitaste este cambio, ignora este correo.",
+    )
+    return send_email(user["email"], "Recuperar contrasena", text_body, html_body)
 
 
 @auth_bp.before_app_request
@@ -167,7 +208,7 @@ def register_post():
     if sent:
         flash("Cuenta creada. Revisa tu correo para verificarla.", "success")
     else:
-        flash("Cuenta creada, pero falta configurar SMTP para enviar el correo.", "error")
+        flash("Cuenta creada, pero falta configurar Resend para enviar el correo.", "error")
 
     return redirect(url_for("auth.login"))
 
