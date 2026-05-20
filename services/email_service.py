@@ -43,7 +43,7 @@ def send_email(to_email, subject, text_body, html_body):
     resend.api_key = api_key
 
     try:
-        resend.Emails.send(
+        response = resend.Emails.send(
             {
                 "from": "onboarding@resend.dev",
                 "to": [to_email],
@@ -52,6 +52,7 @@ def send_email(to_email, subject, text_body, html_body):
                 "html": html_body,
             }
         )
+        current_app.logger.info("Resend acepto email para %s subject=%s response=%s", to_email, subject, response)
         return True
     except Exception:
         current_app.logger.exception("Resend no pudo enviar email a %s", to_email)

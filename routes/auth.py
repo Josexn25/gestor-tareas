@@ -84,6 +84,7 @@ def send_verification_email(user):
 
 def send_password_reset_email(user):
     """Envia el enlace seguro para restablecer contrasena."""
+    current_app.logger.info("Generando token de recuperacion para user_id=%s email=%s", user["id"], user["email"])
     token = generate_token(user["email"], "reset-password")
     link = url_for("auth.reset_password", token=token, _external=True)
     text_body = (
@@ -99,7 +100,14 @@ def send_password_reset_email(user):
         "Cambiar contrasena",
         "Este enlace vence en 1 hora. Si no solicitaste este cambio, ignora este correo.",
     )
-    return send_email(user["email"], "Recuperar contrasena", text_body, html_body)
+    sent = send_email(user["email"], "Recuperar contrasena", text_body, html_body)
+    current_app.logger.info(
+        "Resultado envio recuperacion user_id=%s email=%s sent=%s",
+        user["id"],
+        user["email"],
+        sent,
+    )
+    return sent
 
 
 @auth_bp.before_app_request
@@ -258,13 +266,19 @@ def forgot_password():
 def forgot_password_post():
     """Envia un enlace de recuperacion si el correo existe."""
     email = request.form.get("email", "").strip().lower()
+    current_app.logger.info("Solicitud forgot-password recibida para email=%s", email)
     user = get_db().execute(
-        "SELECT id, username, email FROM users WHERE email = ?",
+        "SELECT id, username, email FROM users WHERE LOWER(email) = ?",
         (email,),
     ).fetchone()
 
     if user:
-        send_password_reset_email(user)
+        current_app.logger.info("Usuario encontrado para recuperacion user_id=%s email=%s", user["id"], user["email"])
+        sent = send_password_reset_email(user)
+        if not sent:
+            current_app.logger.warning("No se pudo enviar recuperacion para user_id=%s email=%s", user["id"], user["email"])
+    else:
+        current_app.logger.info("No existe usuario para recuperacion email=%s", email)
 
     flash("Si el correo existe, enviaremos un enlace para cambiar la contrasena.", "success")
     return redirect(url_for("auth.login"))
