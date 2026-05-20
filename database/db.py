@@ -53,6 +53,8 @@ def init_db():
             priority TEXT NOT NULL DEFAULT 'Media',
             category TEXT NOT NULL DEFAULT 'Otras',
             due_date TEXT DEFAULT '',
+            reminder_tomorrow_sent_at TEXT DEFAULT '',
+            reminder_overdue_sent_at TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
@@ -60,6 +62,7 @@ def init_db():
     )
 
     migrate_users_table(db)
+    migrate_tasks_table(db)
     db.commit()
 
 
@@ -85,6 +88,15 @@ def migrate_users_table(db):
         WHERE email IS NOT NULL AND email != ''
         """
     )
+
+
+def migrate_tasks_table(db):
+    """Agrega columnas de recordatorios a tareas existentes."""
+    if not column_exists(db, "tasks", "reminder_tomorrow_sent_at"):
+        db.execute("ALTER TABLE tasks ADD COLUMN reminder_tomorrow_sent_at TEXT DEFAULT ''")
+
+    if not column_exists(db, "tasks", "reminder_overdue_sent_at"):
+        db.execute("ALTER TABLE tasks ADD COLUMN reminder_overdue_sent_at TEXT DEFAULT ''")
 
 
 def init_app(app):

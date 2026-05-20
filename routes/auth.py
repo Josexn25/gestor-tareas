@@ -1,7 +1,6 @@
 import sqlite3
 from functools import wraps
 
-import resend
 from flask import (
     Blueprint,
     current_app,
@@ -17,6 +16,7 @@ from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database.db import get_db, init_db
+from services.email_service import build_email_html, send_email
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -60,48 +60,6 @@ def load_token(token, purpose, max_age):
         return None, "invalid"
 
     return data.get("email"), None
-
-
-def build_email_html(title, intro, link, button_text, footer):
-    """Crea el HTML base para correos transaccionales."""
-    return f"""
-    <div style="margin:0;padding:32px;background:#0b0d12;color:#f8fafc;font-family:Arial,sans-serif;">
-      <div style="max-width:560px;margin:0 auto;background:#12151d;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:28px;">
-        <p style="margin:0 0 12px;color:#5eead4;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;">Gestor de tareas</p>
-        <h1 style="margin:0 0 14px;font-size:28px;line-height:1.15;color:#f8fafc;">{title}</h1>
-        <p style="margin:0 0 22px;color:#a3aab7;font-size:16px;line-height:1.55;">{intro}</p>
-        <a href="{link}" style="display:inline-block;background:#5eead4;color:#05201c;text-decoration:none;font-weight:800;padding:13px 18px;border-radius:14px;">{button_text}</a>
-        <p style="margin:22px 0 0;color:#a3aab7;font-size:13px;line-height:1.5;">{footer}</p>
-        <p style="margin:16px 0 0;color:#737b8c;font-size:12px;line-height:1.5;word-break:break-all;">{link}</p>
-      </div>
-    </div>
-    """
-
-
-def send_email(to_email, subject, text_body, html_body):
-    """Envia un email transaccional con Resend API."""
-    api_key = current_app.config.get("RESEND_API_KEY")
-
-    if not api_key:
-        current_app.logger.warning("RESEND_API_KEY no configurada. Email pendiente para %s: %s", to_email, text_body)
-        return False
-
-    resend.api_key = api_key
-
-    try:
-        resend.Emails.send(
-            {
-                "from": "onboarding@resend.dev",
-                "to": [to_email],
-                "subject": subject,
-                "text": text_body,
-                "html": html_body,
-            }
-        )
-        return True
-    except Exception:
-        current_app.logger.exception("Resend no pudo enviar email a %s", to_email)
-        return False
 
 
 def send_verification_email(user):
